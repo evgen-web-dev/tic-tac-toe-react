@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useGameDispatch, useGameState } from "../../GameProvider"
 import type { FieldCell } from "../../types/types";
 import GameResult from "../GameResult/GameResult";
+import { GameScore } from "../GameScore/GameScore";
 
 
 type GameBoardProps = {
@@ -252,16 +253,7 @@ export default function GameBoard({ }: GameBoardProps) {
 
             <div className="w-full max-w-[340px] min-[1600px]:max-w-md bg-white dark:bg-neutral-600 rounded-2xl shadow-lg p-4 pt-3 min-[1600px]:p-6 min-[1600px]:pt-4 mt-7 md:mt-10 min-[1600px]:mt-12">
 
-                <span className="text-xl min-[1600px]:text-2xl font-semibold text-gray-700 dark:text-white">Score</span>
-
-                <div className="flex justify-between items-center mb-4 relative">
-                    {players.map((player, playerIndex) => (
-                        <div className="text-center w-2/6 2xl:w-1/6 dark:text-white" key={playerIndex}>
-                            <div className="text-sm text-gray-500 dark:text-white">{player.name}</div>
-                            <div id="user-score" className="text-xl min-[1600px]:text-2xl font-bold text-gray-500 dark:text-white">{player.score}</div>
-                        </div>
-                    ))}
-                </div>
+                <GameScore />
 
                 <button onClick={handleResetOnClick} className='mb-5 !text-xs' type='button'>Reset game-field</button>
 
