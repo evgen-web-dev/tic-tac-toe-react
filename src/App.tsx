@@ -3,6 +3,7 @@ import './App.css'
 import { type FieldCell } from './types/types'
 import CountdownTimer from './components/CountdownTimes/CountdownTimer';
 import { useGameDispatch, useGameState } from './GameProvider';
+import GameResult from './components/GameResult/GameResult';
 
 function App() {
 
@@ -244,18 +245,7 @@ function App() {
     <>
       <div className="bg-gray-100 dark:bg-neutral-800 flex items-center justify-center flex-col p-5 pb-10 md:p-10 md:pb-15 flex-grow rounded-3xl shadow-xl overflow-auto">
 
-        <div className={(isGameFinishedBy ? 'scale-y-100 opacity-100 duration-200' : 'scale-y-0 opacity-0')}>
-          <p className={(isGameFinishedBy ? 'animate-my-bounce' : '') + " text-[24px] min-[380px]:text-[28px] md:text-4xl text-black text-center text-grey-300 dark:text-white leading-[1.1]"}>
-            <span>
-              {isGameFinishedBy?.type === 'draw-game' ? <span>It's a <span className='block md:inline'>draw game</span></span> : <span><span className="font-bold max-sm:block">{currentPlayer.name}</span> has won the game!</span>}
-            </span>
-            
-            <span className='text-xs min-[380px]:text-sm block italic mt-4'>
-              new round will be started in <span className='font-bold'>{isGameFinishedBy && <CountdownTimer startTimerValue={5} onTimerFinished={resetGameField} />}</span> sec...
-            </span>
-          </p>
-        </div>
-        
+        <GameResult onGameFinishedCountdownCompleted={resetGameField} />
 
         <div className="w-full max-w-[340px] min-[1600px]:max-w-md bg-white dark:bg-neutral-600 rounded-2xl shadow-lg p-4 pt-3 min-[1600px]:p-6 min-[1600px]:pt-4 mt-7 md:mt-10 min-[1600px]:mt-12">
 
