@@ -1,45 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import './App.css'
-import { type Player, type FieldCell, type GameField, type GameFinishedBy } from './types'
+import { type FieldCell } from './types/types'
 import CountdownTimer from './components/CountdownTimes/CountdownTimer';
+import { useGameDispatch, useGameState } from './GameProvider';
 
 function App() {
 
-  const [gameField, setGameField] = useState<GameField>({
-    cells: [
-      [ {value: ''}, {value: ''}, {value: ''} ],
-      [ {value: ''}, {value: ''}, {value: ''} ],
-      [ {value: ''}, {value: ''}, {value: ''} ],
-    ],
-    isFreezed: false
-  });
+  const dispatch = useGameDispatch();
 
-  // to track whether game is finished and if yes - by which way (look GameFinishedBy type for more details)
-  const [isGameFinishedBy, setIsGameFinishedBy] = useState<GameFinishedBy>(null);
+  const { gameField, isGameFinishedBy, players, currentPlayer, wonCellsColor } = useGameState();
 
-  // players - user (us) and computer (bot-user)
-  const [players, setPlayers] = useState<Player[]>([
-    { name: 'User', moveValue: 'x', isAutomated: false, score: 0 },
-    { name: 'Computer', moveValue: 'o', isAutomated: true, score: 0 },
-  ]);
-  
-
-  const [currentPlayer, setCurrentPlayer] = useState<Player>(players[0]);
-
-
-  // to highlight cells of "winning" combination - with green color when we won and with red color - when computer won
-  const [wonCellsColor, setWonCellsColor] = useState<'bg-green-200 dark:bg-green-800' | 'bg-red-200 dark:bg-red-900'>('bg-green-200 dark:bg-green-800');
 
 
   useEffect( () => {
-    // // wrapping bot-user move with async fn to make his move be made with time-delay
-    // async function makeBotUserMove() {
-    //   await new Promise((resolve => setTimeout(resolve, 1000))); // making bot users move with a delay
-    //   const [i, j] = getNextMoveCoordinates();
-    //   makeMove(i, j);
-    //   await new Promise((resolve => setTimeout(resolve, 600))); // waiting till icon will finish its animation in the cell where bot-user made a move 
-    // }
-
     if (currentPlayer.isAutomated) {
       // freezing gamefield as automated users (bots) are making their moves with delay so 
       // we might not want to prevent user from being able to interact with gamefield
@@ -47,7 +20,9 @@ function App() {
       makeBotUserMove().then(() => toogleGameFieldFreezed(false));
     }
 
-    setWonCellsColor(currentPlayer.isAutomated ? 'bg-red-200 dark:bg-red-900' : 'bg-green-200 dark:bg-green-800');
+    // setWonCellsColor(currentPlayer.isAutomated ? WonCellsColorTypes.LostColor : WonCellsColorTypes.WinColor);
+    dispatch({ type: 'setWonCellsColor' });
+
   }, [currentPlayer] );
 
 
@@ -56,7 +31,6 @@ function App() {
     if (!isGameFinishedBy && !isGameFieldEmpty()) {
       checkIfWon();
     }
-
   }, [gameField.cells]);
 
 
@@ -99,14 +73,15 @@ function App() {
       }
 
       toogleGameFieldFreezed(true);
-      highlightGameFieldCells(coordinatesToHightlight, 600);
+      highlightGameFieldCells(coordinatesToHightlight, 300);
     }
   }, [isGameFinishedBy]);
 
 
 
   function toogleGameFieldFreezed(isGameFieldFreezed: boolean) {
-    setGameField((prevGameField) => ({...prevGameField, isFreezed: isGameFieldFreezed}));
+    // setGameField((prevGameField) => ({...prevGameField, isFreezed: isGameFieldFreezed}));
+    dispatch({ type: 'freezeGameField', payload: {isFreezed: isGameFieldFreezed} });
   }
 
 
@@ -119,18 +94,7 @@ function App() {
     // last clicked cell's icon will finish it animation and will show-up completely - and after that - needed cells will be highlighted with color.
 
     await new Promise((resolve, _) => setTimeout(resolve, delayMs));
-    
-    setGameField((prevGameField) => {
-      const newGameField = {...prevGameField};
-      newGameField.cells = [...newGameField.cells];
-
-      for (const curCoordinatesPair of cellsCoordinates) {
-        const [i, j] = curCoordinatesPair;
-        newGameField.cells[i][j].isHightlighted = true;
-      }
-
-      return newGameField;
-    });
+    dispatch({ type: 'highlightGameFieldCells', payload: {cellsCoordinates: cellsCoordinates} })
   }
 
 
@@ -154,7 +118,7 @@ function App() {
         && gameField.cells[i][2].value === currentPlayer.moveValue
       ) {
           hasCurrentPlayerWon = true;
-          setIsGameFinishedBy({ type: 'row-won', rowIndex: i });
+          dispatch({ type: 'setIsGameFinishedBy', payload: {newSetIsGameFinishedBy: { type: 'row-won', rowIndex: i } } })
       }
     }
 
@@ -164,7 +128,7 @@ function App() {
         && gameField.cells[2][j].value === currentPlayer.moveValue
       ) {
           hasCurrentPlayerWon = true;
-          setIsGameFinishedBy({ type: 'col-won', colIndex: j });
+          dispatch({ type: 'setIsGameFinishedBy', payload: {newSetIsGameFinishedBy: { type: 'col-won', colIndex: j } } })
       }
     }
 
@@ -173,14 +137,14 @@ function App() {
         && gameField.cells[2][2].value === currentPlayer.moveValue 
       ) {
       hasCurrentPlayerWon = true;
-      setIsGameFinishedBy({ type: 'diagonal-won', diagonalType: 'left' });
+      dispatch({ type: 'setIsGameFinishedBy', payload: {newSetIsGameFinishedBy: { type: 'diagonal-won', diagonalType: 'left' } } })
     }
     if (gameField.cells[0][2].value === currentPlayer.moveValue 
         && gameField.cells[1][1].value === currentPlayer.moveValue 
         && gameField.cells[2][0].value === currentPlayer.moveValue 
       ) {
       hasCurrentPlayerWon = true;
-      setIsGameFinishedBy({ type: 'diagonal-won', diagonalType: 'right' });
+      dispatch({ type: 'setIsGameFinishedBy', payload: {newSetIsGameFinishedBy: { type: 'diagonal-won', diagonalType: 'right' } } })
     }
 
     
@@ -190,7 +154,7 @@ function App() {
     }
     else if (isGameFieldFilled()) {
       // if it's draw game
-      setIsGameFinishedBy({ type: 'draw-game'});
+      dispatch({ type: 'setIsGameFinishedBy', payload: {newSetIsGameFinishedBy: { type: 'draw-game'} } });
     }
     else {
       // if game still is going on - passing gamefield for move to other player
@@ -215,10 +179,7 @@ function App() {
 
 
   function switchToNextPlayer() {
-    setCurrentPlayer((prevPlayer: Player) => {
-      const prevPlayerIndex = players.findIndex( (curPlayer: Player) => curPlayer.name === prevPlayer.name );
-      return players[ prevPlayerIndex === (players.length - 1) ? 0 : prevPlayerIndex + 1 ]; // setting next (or first) player as active
-    });
+    dispatch({ type: 'switchToNextPlayer' });
   }
 
 
@@ -226,7 +187,7 @@ function App() {
   function isGameFieldEmpty(): boolean {
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
-        if (gameField.cells[i][j].value) {
+        if (gameField.cells[i][j].value !== '') {
           return false;
         }
       }
@@ -252,35 +213,18 @@ function App() {
 
 
   function resetGameField() {
-    setGameField((prevGameField) => ({...prevGameField, cells: [
-      [ {value: ''}, {value: ''}, {value: ''} ],
-      [ {value: ''}, {value: ''}, {value: ''} ],
-      [ {value: ''}, {value: ''}, {value: ''} ],
-    ]}));
-    
-    setIsGameFinishedBy(null);
-
-    setCurrentPlayer(players[0]);
-
-    toogleGameFieldFreezed(false);
+    dispatch({ type: 'resetGameField' });
   }
 
 
   function makeMove(i: number, j: number) {
-    setGameField( (prevGameField: GameField) => {
-      const newGameField: GameField = {...prevGameField};
-      newGameField.cells = [...newGameField.cells];
-
-      newGameField.cells[ i ][ j ].value = currentPlayer.moveValue;
-
-      return newGameField;
-    });
+    dispatch({ type: 'makeMove', payload: {cellCoordinates: [i, j], moveValue: currentPlayer.moveValue} });
   }
 
 
 
   function incrementPlayerScore(playerName: string) {
-    setPlayers((prevPlayers) => prevPlayers.map((player: Player) => (player.name === playerName ? {...player, score: player.score + 1} : player)));
+    dispatch({ type: 'incrementPlayerScore', payload: {playerName: playerName} });
   }
 
 

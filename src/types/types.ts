@@ -36,3 +36,10 @@ type GameFinishedByDraw = {
     type: 'draw-game'
 }
 export type GameFinishedBy = null | GameFinishedByDiagonalWon | GameFinishedByColWon | GameFinishedByRowWon | GameFinishedByDraw;
+
+
+export type WonCellsColorType = typeof WonCellsColorTypes[keyof typeof WonCellsColorTypes];
+export const WonCellsColorTypes = {
+    WinColor: 'bg-green-200 dark:bg-green-800', 
+    LostColor: 'bg-red-200 dark:bg-red-900'
+}
