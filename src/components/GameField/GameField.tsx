@@ -1,6 +1,6 @@
 import { useGameState } from "../../reducers/gameReducer/gameReducerContext"
 import { type FieldCell } from "../../types/types";
-import GameFieldCell from "../FieldCell/GameFieldCell";
+import GameFieldCell from "../GameFieldCell/GameFieldCell";
 
 
 type GameFieldProps = {
