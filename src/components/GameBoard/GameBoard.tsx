@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { useGameDispatch, useGameState } from "../../GameProvider"
-import type { FieldCell } from "../../types/types";
+import { useGameDispatch, useGameState } from "../../reducers/gameReducer/gameReducerContext"
 import GameResult from "../GameResult/GameResult";
 import { GameScore } from "../GameScore/GameScore";
 import { GameField } from "../GameField/GameField";
@@ -13,7 +12,7 @@ type GameBoardProps = {
 
 export default function GameBoard({ }: GameBoardProps) {
 
-    const { gameField, currentPlayer, players, wonCellsColor, isGameFinishedBy } = useGameState();
+    const { gameField, currentPlayer, isGameFinishedBy } = useGameState();
     const dispatch = useGameDispatch();
 
 
@@ -22,10 +21,9 @@ export default function GameBoard({ }: GameBoardProps) {
             // freezing gamefield as automated users (bots) are making their moves with delay so 
             // we might not want to prevent user from being able to interact with gamefield
             toogleGameFieldFreezed(true);
-            makeBotUserMove().then(() => toogleGameFieldFreezed(false));
+            makeBotUserMove();
         }
 
-        // setWonCellsColor(currentPlayer.isAutomated ? WonCellsColorTypes.LostColor : WonCellsColorTypes.WinColor);
         dispatch({ type: 'setWonCellsColor' });
 
     }, [currentPlayer]);
@@ -34,7 +32,7 @@ export default function GameBoard({ }: GameBoardProps) {
 
     useEffect(() => {
         if (!isGameFinishedBy && !isGameFieldEmpty()) {
-            checkIfWon();
+            checkIfWin();
         }
     }, [gameField.cells]);
 
@@ -78,14 +76,13 @@ export default function GameBoard({ }: GameBoardProps) {
             }
 
             toogleGameFieldFreezed(true);
-            highlightGameFieldCells(coordinatesToHightlight, 300);
+            highlightGameFieldCells(coordinatesToHightlight, 400);
         }
     }, [isGameFinishedBy]);
 
 
 
     function toogleGameFieldFreezed(isGameFieldFreezed: boolean) {
-        // setGameField((prevGameField) => ({...prevGameField, isFreezed: isGameFieldFreezed}));
         dispatch({ type: 'freezeGameField', payload: { isFreezed: isGameFieldFreezed } });
     }
 
@@ -114,7 +111,7 @@ export default function GameBoard({ }: GameBoardProps) {
 
 
 
-    function checkIfWon() {
+    function checkIfWin() {
         let hasCurrentPlayerWon = false;
 
         for (let i = 0; i < 3; i++) {
@@ -156,6 +153,7 @@ export default function GameBoard({ }: GameBoardProps) {
         if (hasCurrentPlayerWon) {
             // if some of players won
             incrementPlayerScore(currentPlayer.name);
+            toogleGameFieldFreezed(true);
         }
         else if (isGameFieldFilled()) {
             // if it's draw game
@@ -163,7 +161,9 @@ export default function GameBoard({ }: GameBoardProps) {
         }
         else {
             // if game still is going on - passing gamefield for move to other player
+            // and unfreezing game-field for next player's move
             switchToNextPlayer();
+            toogleGameFieldFreezed(false);
         }
     }
 
@@ -226,7 +226,7 @@ export default function GameBoard({ }: GameBoardProps) {
 
 
     function makeMove(i: number, j: number) {
-        dispatch({ type: 'makeMove', payload: { cellCoordinates: [i, j], moveValue: currentPlayer.moveValue } });
+        if ( !gameField.isFreezed ) dispatch({ type: 'makeMove', payload: { cellCoordinates: [i, j], moveValue: currentPlayer.moveValue } });
     }
 
 
@@ -247,12 +247,13 @@ export default function GameBoard({ }: GameBoardProps) {
             <GameResult onGameFinishedCountdownCompleted={resetGameField} />
 
             <div className="w-full max-w-[340px] min-[1600px]:max-w-md bg-white dark:bg-neutral-600 rounded-2xl shadow-lg p-4 pt-3 min-[1600px]:p-6 min-[1600px]:pt-4 mt-7 md:mt-10 min-[1600px]:mt-12">
-
+               
                 <GameScore />
 
                 <button onClick={handleResetOnClick} className='mb-5 !text-xs' type='button'>Reset game-field</button>
 
                 <GameField onMove={makeMove} />
+
             </div>
 
         </>

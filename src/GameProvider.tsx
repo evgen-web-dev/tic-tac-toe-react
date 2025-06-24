@@ -1,10 +1,7 @@
-import { createContext, useReducer, useContext, type ReactNode, type Dispatch } from 'react';
-import { gameReducerFunction, type State, type Action } from './reducers/gameReducer';
+import { useReducer, type ReactNode } from 'react';
+import { gameReducerFunction, type State, type Action } from './reducers/gameReducer/gameReducer';
 import { WonCellsColorTypes } from './types/types';
-
-
-const StateCtx = createContext<State | undefined>(undefined)
-const DispatchCtx = createContext<Dispatch<Action> | undefined>(undefined);
+import { StateCtx, DispatchCtx } from './reducers/gameReducer/gameReducerContext';
 
 
 export function GameProvider({ children }: { children: ReactNode }) {
@@ -37,16 +34,4 @@ export function GameProvider({ children }: { children: ReactNode }) {
       </DispatchCtx.Provider>
     </StateCtx.Provider>
   )
-}
-
-export function useGameState() {
-  const ctx = useContext(StateCtx)
-  if (!ctx) throw new Error('useGameState must be inside <GameProvider>')
-  return ctx
-}
-
-export function useGameDispatch() {
-  const ctx = useContext(DispatchCtx)
-  if (!ctx) throw new Error('useGameDispatch must be inside <GameProvider>')
-  return ctx
 }

@@ -1,4 +1,4 @@
-import { useGameState } from "../../GameProvider"
+import { useGameState } from "../../reducers/gameReducer/gameReducerContext"
 import CountdownTimer from "../CountdownTimes/CountdownTimer";
 
 

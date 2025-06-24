@@ -8,7 +8,7 @@ export type FieldCell = {
 export type Player = {
     name: string,
     moveValue: string,
-    isAutomated: boolean, 
+    isAutomated: boolean,
     score: number
 }
 

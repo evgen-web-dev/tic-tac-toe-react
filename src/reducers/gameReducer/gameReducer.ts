@@ -1,6 +1,8 @@
-import { WonCellsColorTypes, type GameField, type GameFinishedBy, type Player, type WonCellsColorType } from "../types/types";
-import { hasNumericValue } from "../utils/utils";
-import type { BaseAction } from "./global";
+import { WonCellsColorTypes, type GameField, type GameFinishedBy, type Player, type WonCellsColorType } from "../../types/types";
+import { hasNumericValue } from "../../utils/utils";
+import type { BaseAction } from "../global";
+
+
 
 export type State = {
     gameField: GameField,   // to highlight cells of "winning" combination - with green color when we won and with red color - when computer won
@@ -114,7 +116,7 @@ export function gameReducerFunction(state: State, action: Action): State {
 
             for (const curCoordinatesPair of (action.payload?.cellsCoordinates || [])) {
                 const [i, j] = curCoordinatesPair;
-                newGameField.cells[i][j].isHightlighted = true;
+                newGameField.cells[ i ][ j ].isHightlighted = true;
             }
       
             return {
@@ -133,7 +135,7 @@ export function gameReducerFunction(state: State, action: Action): State {
         case 'setIsGameFinishedBy': {
             return {
                 ...state,
-                isGameFinishedBy: action.payload!.newSetIsGameFinishedBy || null
+                isGameFinishedBy: action.payload?.newSetIsGameFinishedBy || null
             }
         }
 
