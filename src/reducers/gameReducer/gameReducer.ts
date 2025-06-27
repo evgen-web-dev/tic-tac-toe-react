@@ -1,144 +1,200 @@
-import { WonCellsColorTypes, type GameField, type GameFinishedBy, type Player, type WonCellsColorType } from "../../types/types";
+import {
+  WonCellsColorTypes,
+  type GameField,
+  type GameStatus,
+  type Player,
+  type WonCellsColorType,
+} from "../../types/types";
 import { hasNumericValue } from "../../utils/utils";
 import type { BaseAction } from "../global";
+import { TicTacToeEngine, type Position } from "../../game/TicTacToeEngine";
 
+const convertEngineStateToGameField = (engine: TicTacToeEngine): GameField => {
+  const gameState = engine.getGameState();
+  const cells = gameState.board.map(row => 
+    row.map(cell => ({ value: cell.toLowerCase() }))
+  ) as GameField['cells'];
+  
+  return {
+    cells,
+    isFreezed: gameState.result !== 'playing'
+  };
+};
+
+const positionToCoords = (pos: Position): [number, number] => [pos.row, pos.col];
+
+const updateGameField = (
+  gameField: GameField,
+  updates: Partial<GameField> = {}
+): GameField => ({
+  ...gameField,
+  cells: [...gameField.cells],
+  ...updates,
+});
+
+const getNextPlayer = (players: Player[], currentPlayer: Player): Player => {
+  const currentIndex = players.findIndex((p) => p.name === currentPlayer.name);
+  return players[(currentIndex + 1) % players.length];
+};
 
 
 export type State = {
-    gameField: GameField,   // to highlight cells of "winning" combination - with green color when we won and with red color - when computer won
-    isGameFinishedBy: GameFinishedBy, // to track whether game is finished and if yes - by which way (look GameFinishedBy type for more details)
-    players: Player[],
-    currentPlayer: Player,
-    wonCellsColor: WonCellsColorType
-}
+  gameField: GameField;
+  gameStatus: GameStatus;
+  winner: Player | null;
+  winningCells: Array<[number, number]>;
+  players: Player[];
+  currentPlayer: Player;
+  wonCellsColor: WonCellsColorType;
+  gameEngine: TicTacToeEngine;
+};
 
+type MakeMoveAction = BaseAction<
+  "makeMove",
+  { cellCoordinates: [number, number] }
+>;
+type ResetGameFieldAction = BaseAction<"resetGameField">;
+type HighlightGameFieldCellsAction = BaseAction<
+  "highlightGameFieldCells",
+  { cellsCoordinates: Array<[number, number]> }
+>;
+type SetWonCellsColorAction = BaseAction<"setWonCellsColor">;
+type MakeBotMoveAction = BaseAction<"makeBotMove">;
 
-
-type MakeMoveAction = BaseAction<'makeMove', {
-    cellCoordinates: [number, number],
-    moveValue: string
-}>
-
-type IncrementPlayerScoreAction = BaseAction<'incrementPlayerScore', {
-    playerName: string
-}>
-
-type ResetGameFieldAction = BaseAction<'resetGameField'>;
-
-type FreezeGameFieldAction = BaseAction<'freezeGameField', {
-    isFreezed: boolean
-}>;
-
-type SwitchToNextPlayerAction = BaseAction<'switchToNextPlayer'>;
-
-type HighlightGameFieldCellsAction = BaseAction<'highlightGameFieldCells', {
-    cellsCoordinates: Array<[number, number]>
-}>;
-
-type SetWonCellsColorAction = BaseAction<'setWonCellsColor'>;
-
-type SetIsGameFinishedByAction = BaseAction<'setIsGameFinishedBy', {
-    newSetIsGameFinishedBy: GameFinishedBy
-}>;
-
-
-export type Action = MakeMoveAction | IncrementPlayerScoreAction | ResetGameFieldAction 
-| FreezeGameFieldAction | SwitchToNextPlayerAction | HighlightGameFieldCellsAction | SetWonCellsColorAction
-| SetIsGameFinishedByAction;
-
-
-    
+export type Action =
+  | MakeMoveAction
+  | ResetGameFieldAction
+  | HighlightGameFieldCellsAction
+  | SetWonCellsColorAction
+  | MakeBotMoveAction;
 
 export function gameReducerFunction(state: State, action: Action): State {
-    switch (action.type) {
+  switch (action.type) {
+    case "makeMove": {
+      const [row, col] = action.payload?.cellCoordinates || [];
+      if (!hasNumericValue(row, col)) return state;
 
-        case 'makeMove': {
-            const [i, j] = action.payload?.cellCoordinates || [];
-
-            const newGameField: GameField = {...state.gameField};
-            newGameField.cells = [...newGameField.cells];
-
-            if (hasNumericValue(i, j)) {
-                newGameField.cells[ i! ][ j! ].value = state.currentPlayer.moveValue;
-            }
-
-            return {
-                ...state,
-                gameField: newGameField
-            }
-        }
-
-        case 'incrementPlayerScore': {
-            return {
-                ...state, 
-                players: state.players.map((player: Player) => (player.name === (action.payload?.playerName || '') ? {...player, score: player.score + 1} : player)) 
-            }
-        }
-
-        case 'resetGameField': {
-            return {
-                ...state, 
-                gameField: {
-                    ...state.gameField, 
-                    cells: [
-                        [ {value: ''}, {value: ''}, {value: ''} ],
-                        [ {value: ''}, {value: ''}, {value: ''} ],
-                        [ {value: ''}, {value: ''}, {value: ''} ],
-                    ],
-                    isFreezed: false
-                },
-                isGameFinishedBy: null,
-                currentPlayer: state.players[0],
-            }
-        }
-
-        case 'freezeGameField': {
-            return {
-                ...state, 
-                gameField: {
-                    ...state.gameField, isFreezed: (action.payload?.isFreezed || false)
-                }
-            }
-        }
-
-        case 'switchToNextPlayer': {
-            const prevPlayerIndex = state.players.findIndex( (curPlayer: Player) => curPlayer.name === state.currentPlayer.name );
-
-            return {
-                ...state, 
-                currentPlayer: state.players[ prevPlayerIndex === (state.players.length - 1) ? 0 : prevPlayerIndex + 1 ] // setting next (or first) player as active
-            }
-        }
-
-        case 'highlightGameFieldCells': {
-            const newGameField = {...state.gameField};
-            newGameField.cells = [...newGameField.cells];
-
-            for (const curCoordinatesPair of (action.payload?.cellsCoordinates || [])) {
-                const [i, j] = curCoordinatesPair;
-                newGameField.cells[ i ][ j ].isHightlighted = true;
-            }
+      const newEngine = state.gameEngine.clone();
+      const moveSuccess = newEngine.makeMove(row!, col!);
       
-            return {
-                ...state,
-                gameField: newGameField
-            }
-        }
+      if (!moveSuccess) return state;
 
-        case 'setWonCellsColor': {
-            return {
-                ...state,
-                wonCellsColor: state.currentPlayer.isAutomated ? WonCellsColorTypes.LostColor : WonCellsColorTypes.WinColor
-            }
-        }
+      const gameState = newEngine.getGameState();
+      const newGameField = convertEngineStateToGameField(newEngine);
+      
+      let newState: State = {
+        ...state,
+        gameEngine: newEngine,
+        gameField: newGameField,
+      };
 
-        case 'setIsGameFinishedBy': {
-            return {
-                ...state,
-                isGameFinishedBy: action.payload?.newSetIsGameFinishedBy || null
-            }
-        }
+      if (gameState.result === 'win') {
+        newState = {
+          ...newState,
+          gameStatus: "won",
+          winner: state.currentPlayer,
+          winningCells: gameState.winningCells.map(positionToCoords),
+          players: state.players.map((player) =>
+            player.name === state.currentPlayer.name
+              ? { ...player, score: player.score + 1 }
+              : player
+          ),
+        };
+      } else if (gameState.result === 'draw') {
+        newState = {
+          ...newState,
+          gameStatus: "draw",
+          winner: null,
+          winningCells: [],
+        };
+      } else {
+        newState = {
+          ...newState,
+          currentPlayer: getNextPlayer(state.players, state.currentPlayer),
+        };
+      }
 
+      return newState;
     }
-    return state;
+
+    case "makeBotMove": {
+      const newEngine = state.gameEngine.clone();
+      const bestMove = newEngine.getBestMove();
+      
+      if (!bestMove) return state;
+      
+      const moveSuccess = newEngine.makeMove(bestMove.row, bestMove.col);
+      if (!moveSuccess) return state;
+
+      const gameState = newEngine.getGameState();
+      const newGameField = convertEngineStateToGameField(newEngine);
+      
+      let newState: State = {
+        ...state,
+        gameEngine: newEngine,
+        gameField: newGameField,
+      };
+
+      if (gameState.result === 'win') {
+        newState = {
+          ...newState,
+          gameStatus: "won",
+          winner: state.currentPlayer,
+          winningCells: gameState.winningCells.map(positionToCoords),
+          players: state.players.map((player) =>
+            player.name === state.currentPlayer.name
+              ? { ...player, score: player.score + 1 }
+              : player
+          ),
+        };
+      } else if (gameState.result === 'draw') {
+        newState = {
+          ...newState,
+          gameStatus: "draw",
+          winner: null,
+          winningCells: [],
+        };
+      } else {
+        newState = {
+          ...newState,
+          currentPlayer: getNextPlayer(state.players, state.currentPlayer),
+        };
+      }
+
+      return newState;
+    }
+
+    case "resetGameField": {
+      const newEngine = new TicTacToeEngine();
+      return {
+        ...state,
+        gameEngine: newEngine,
+        gameField: convertEngineStateToGameField(newEngine),
+        gameStatus: "playing",
+        winner: null,
+        winningCells: [],
+        currentPlayer: state.players[0],
+      };
+    }
+
+    case "highlightGameFieldCells": {
+      const newGameField = updateGameField(state.gameField);
+      const cellsCoordinates = action.payload?.cellsCoordinates || [];
+
+      cellsCoordinates.forEach(([i, j]) => {
+        newGameField.cells[i][j].isHightlighted = true;
+      });
+
+      return { ...state, gameField: newGameField };
+    }
+
+    case "setWonCellsColor": {
+      return {
+        ...state,
+        wonCellsColor: state.currentPlayer.isAutomated
+          ? WonCellsColorTypes.LostColor
+          : WonCellsColorTypes.WinColor,
+      };
+    }
+  }
 }
