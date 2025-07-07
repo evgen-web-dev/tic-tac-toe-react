@@ -1,15 +1,16 @@
-import { useGameState } from "../../reducers/gameReducer/gameReducerContext"
-import CountdownTimer from "../CountdownTimes/CountdownTimer";
+import { type State } from "../../reducers/gameReducer/gameReducer";
+import CountdownTimer from "../CountdownTimer/CountdownTimer";
 
 
 type GameResultProps = {
+    state: State
     onGameFinishedCountdownCompleted: () => void;
 }
 
 
-export default function GameResult({ onGameFinishedCountdownCompleted }: GameResultProps) {
+export default function GameResult({ state, onGameFinishedCountdownCompleted }: GameResultProps) {
 
-    const { isGameFinishedBy, currentPlayer } = useGameState();
+    const { isGameFinishedBy, currentPlayer } = state;
 
     return (
         <>

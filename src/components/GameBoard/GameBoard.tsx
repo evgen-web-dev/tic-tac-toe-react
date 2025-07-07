@@ -1,8 +1,9 @@
-import { useEffect } from "react";
-import { useGameDispatch, useGameState } from "../../reducers/gameReducer/gameReducerContext"
+import { useEffect, useReducer } from "react";
 import GameResult from "../GameResult/GameResult";
 import { GameScore } from "../GameScore/GameScore";
 import { GameField } from "../GameField/GameField";
+import { type State, type Action, gameReducerFunction } from "../../reducers/gameReducer/gameReducer";
+import { WonCellsColorTypes } from "../../types/types";
 
 
 type GameBoardProps = {
@@ -12,8 +13,27 @@ type GameBoardProps = {
 
 export default function GameBoard({ }: GameBoardProps) {
 
-    const { gameField, currentPlayer, isGameFinishedBy } = useGameState();
-    const dispatch = useGameDispatch();
+    const initialPlayers = [
+      { name: 'User', moveValue: 'x', isAutomated: false, score: 0 },
+      { name: 'Computer', moveValue: 'o', isAutomated: true, score: 0 },
+    ];
+    
+      const [state, dispatch] = useReducer<State, [Action]>(gameReducerFunction, {
+          gameField: {
+              cells: [
+              [ {value: ''}, {value: ''}, {value: ''} ],
+              [ {value: ''}, {value: ''}, {value: ''} ],
+              [ {value: ''}, {value: ''}, {value: ''} ],
+              ],
+              isFreezed: false
+          },
+          isGameFinishedBy: null,
+          players: initialPlayers,
+          currentPlayer: initialPlayers[0],
+          wonCellsColor: WonCellsColorTypes.LostColor
+      });
+
+    const { gameField, currentPlayer, isGameFinishedBy } = state;
 
 
     useEffect(() => {
@@ -244,15 +264,15 @@ export default function GameBoard({ }: GameBoardProps) {
 
     return (
         <>
-            <GameResult onGameFinishedCountdownCompleted={resetGameField} />
+            <GameResult state={state} onGameFinishedCountdownCompleted={resetGameField} />
 
             <div className="w-full max-w-[340px] min-[1600px]:max-w-md bg-white dark:bg-neutral-600 rounded-2xl shadow-lg p-4 pt-3 min-[1600px]:p-6 min-[1600px]:pt-4 mt-7 md:mt-10 min-[1600px]:mt-12">
                
-                <GameScore />
+                <GameScore state={state} />
 
                 <button onClick={handleResetOnClick} className='mb-5 !text-xs' type='button'>Reset game-field</button>
 
-                <GameField onMove={makeMove} />
+                <GameField state={state} onMove={makeMove} />
 
             </div>
 

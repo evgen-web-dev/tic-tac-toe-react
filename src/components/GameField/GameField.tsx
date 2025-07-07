@@ -1,16 +1,17 @@
-import { useGameState } from "../../reducers/gameReducer/gameReducerContext"
+import { type State } from "../../reducers/gameReducer/gameReducer";
 import { type FieldCell } from "../../types/types";
 import GameFieldCell from "../GameFieldCell/GameFieldCell";
 
 
 type GameFieldProps = {
+    state: State;
     onMove: (i: number, j: number) => void;
 }
 
 
-export function GameField({ onMove }: GameFieldProps) {
+export function GameField({ state, onMove }: GameFieldProps) {
 
-    const { gameField } = useGameState();
+    const { gameField } = state;
 
     return (
         <>
@@ -20,6 +21,7 @@ export function GameField({ onMove }: GameFieldProps) {
 
                     curCellRow.map((curCell: FieldCell, indexInner: number) => (
                         <GameFieldCell 
+                            state={state}
                             key={index + '-' + indexInner}
                             cellValue={curCell} 
                             onCellMove={() => onMove(index, indexInner)} 

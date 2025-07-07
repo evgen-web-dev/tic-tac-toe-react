@@ -1,13 +1,13 @@
-import { useGameState } from "../../reducers/gameReducer/gameReducerContext"
+import { type State } from "../../reducers/gameReducer/gameReducer";
 
 type GameScoreProps = {
-
+    state: State
 }
 
 
-export function GameScore({}: GameScoreProps) {
+export function GameScore({state}: GameScoreProps) {
 
-    const { players } = useGameState();
+    const { players } = state;
 
     return (
         <>

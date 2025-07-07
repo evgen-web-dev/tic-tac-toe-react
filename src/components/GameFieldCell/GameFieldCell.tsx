@@ -1,16 +1,17 @@
-import { useGameState } from "../../reducers/gameReducer/gameReducerContext";
+import { type State } from "../../reducers/gameReducer/gameReducer";
 import { type FieldCell } from "../../types/types";
 
 
 type GameFieldCellProps = {
+    state: State
     cellValue: FieldCell;
     onCellMove: () => void;
 }
 
 
-export default function GameFieldCell({ cellValue, onCellMove }: GameFieldCellProps) {
+export default function GameFieldCell({ state, cellValue, onCellMove }: GameFieldCellProps) {
 
-    const { wonCellsColor } = useGameState();
+    const { wonCellsColor } = state;
 
     const commonSvgClasses = ' w-[30%] h-[30%] min-[380px]:w-[35%] min-[380px]:h-[35%] stroke-black dark:stroke-white animate-svg';
 
