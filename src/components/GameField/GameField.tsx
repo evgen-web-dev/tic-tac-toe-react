@@ -17,7 +17,7 @@ export function GameField({ state, onMove }: GameFieldProps) {
         <>
             <div id="board" className="grid grid-cols-3 gap-2 md:gap-3 min-[1600px]:gap-4 aspect-square">
 
-                {gameField && gameField.cells.map((curCellRow: FieldCell[], index: number) => (
+                {gameField && gameField.board.map((curCellRow: FieldCell[], index: number) => (
 
                     curCellRow.map((curCell: FieldCell, indexInner: number) => (
                         <GameFieldCell 
