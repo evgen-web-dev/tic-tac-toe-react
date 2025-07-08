@@ -14,7 +14,7 @@ export type Player = {
 
 
 export type GameField = {
-    cells: [
+    board: [
         [FieldCell, FieldCell, FieldCell],
         [FieldCell, FieldCell, FieldCell],
         [FieldCell, FieldCell, FieldCell],
