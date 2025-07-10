@@ -6,6 +6,7 @@ import { type State, type Action, gameReducerFunction } from "../../reducers/gam
 import { WonCellsColorTypes } from "../../types/types";
 import { TicTacToeEngine } from "../GameResult/TicTacToeEngine";
 import { hasNumericValue } from "../../utils/utils";
+import GameSettings from "../GameSettings/GameSetings";
 
 
 type GameBoardProps = {
@@ -14,13 +15,16 @@ type GameBoardProps = {
 
 
 export default function GameBoard({ }: GameBoardProps) {
+
     const [state, dispatch] = useReducer<State, [Action]>(gameReducerFunction, {
         ...(new TicTacToeEngine()).getGame(),
         isGameFinishedBy: null,
         wonCellsColor: WonCellsColorTypes.LostColor
     });
 
-    const { gameField, currentPlayer, isGameFinishedBy } = state;
+    const { gameField, isGameFinishedBy, players } = state;
+
+    const currentPlayer = TicTacToeEngine.getActivePlayer(players);
 
 
     useEffect(() => {
@@ -98,13 +102,15 @@ export default function GameBoard({ }: GameBoardProps) {
 
     return (
         <>
+            <GameSettings state={state} dispatch={dispatch} className="absolute top-2 right-2 lg:top-8 lg:right-8" />
+
             <GameResult state={state} onGameFinishedCountdownCompleted={resetGameField} />
 
             <div className="w-full max-w-[340px] min-[1600px]:max-w-md bg-white dark:bg-neutral-600 rounded-2xl shadow-lg p-4 pt-3 min-[1600px]:p-6 min-[1600px]:pt-4 mt-7 md:mt-10 min-[1600px]:mt-12">
 
                 <GameScore state={state} />
 
-                <button onClick={handleResetOnClick} className='mb-5 !text-xs' type='button'>Reset game-field</button>
+                <button onClick={handleResetOnClick} className='button mb-5 !text-xs' type='button'>Reset game-field</button>
 
                 <GameField state={state} onMove={makeMove} />
 

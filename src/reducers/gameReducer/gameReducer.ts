@@ -1,12 +1,12 @@
 import { TicTacToeEngine, type GameEngineProps } from "../../components/GameResult/TicTacToeEngine";
-import { WonCellsColorTypes, type GameFinishedBy, type WonCellsColorType } from "../../types/types";
+import { WonCellsColorTypes, type DifficultyLevel, type GameFinishedBy, type WonCellsColorType } from "../../types/types";
 import type { BaseAction } from "../global";
 
 
 
 export type State = GameEngineProps & {
   isGameFinishedBy: GameFinishedBy, // to track whether game is finished and if yes - by which way (look GameFinishedBy type for more details)
-  wonCellsColor: WonCellsColorType
+  wonCellsColor: WonCellsColorType,
 }
 
 
@@ -25,8 +25,16 @@ type HighlightGameFieldCellsAction = BaseAction<'highlightGameFieldCells'>;
 
 type SetWonCellsColorAction = BaseAction<'setWonCellsColor'>;
 
-export type Action = MakeMoveAction | ResetGameFieldAction | FreezeGameFieldAction 
-| HighlightGameFieldCellsAction | SetWonCellsColorAction;
+type SetDifficultyLevelAction = BaseAction<'setDifficultyLevelAction', {
+  level: DifficultyLevel
+}>;
+
+type SetUserName = BaseAction<'setUserName', {
+  newName: string
+}>;
+
+export type Action = MakeMoveAction | ResetGameFieldAction | FreezeGameFieldAction
+  | HighlightGameFieldCellsAction | SetWonCellsColorAction | SetDifficultyLevelAction | SetUserName;
 
 
 
@@ -37,18 +45,20 @@ export function gameReducerFunction(state: State, action: Action): State {
   switch (action.type) {
 
     case 'makeMove': {
-      gameEngine.makeMove(action.payload?.cellCoordinates || gameEngine.getNextMoveCoordinates());
-      
-      const currentGameResult = gameEngine.checkIfWin();
+      let currentGameResult = state.isGameFinishedBy;
 
-      if (currentGameResult === null) {
-        gameEngine.switchToNextPlayer();
-        gameEngine.freezeGameField(false);
-      }
+      if (gameEngine.makeMove(action.payload?.cellCoordinates || gameEngine.getNextMoveCoordinates())) {
+        currentGameResult = gameEngine.checkIfWin();
 
-      else if (currentGameResult.type !== 'draw-game') {
-        gameEngine.incrementCurrentPlayerScore();
-        gameEngine.freezeGameField(true);
+        if (currentGameResult === null) {
+          gameEngine.switchToNextPlayer();
+          gameEngine.freezeGameField(false);
+        }
+
+        else if (currentGameResult.type !== 'draw-game') {
+          gameEngine.incrementCurrentPlayerScore();
+          gameEngine.freezeGameField(true);
+        }
       }
 
       return {
@@ -86,9 +96,29 @@ export function gameReducerFunction(state: State, action: Action): State {
     }
 
     case 'setWonCellsColor': {
+      const currentPlayer = gameEngine.getCurrentPlayer()!;
       return {
         ...state,
-        wonCellsColor: state.currentPlayer.isAutomated ? WonCellsColorTypes.LostColor : WonCellsColorTypes.WinColor
+        wonCellsColor: currentPlayer.isAutomated ? WonCellsColorTypes.LostColor : WonCellsColorTypes.WinColor
+      }
+    }
+
+    case 'setDifficultyLevelAction': {
+      gameEngine.setDiffucultyLevel(action.payload?.level || 'simple');
+
+      return {
+        ...state,
+        difficultyLevel: gameEngine.getDiffucultyLevel()
+      }
+    }
+
+    case 'setUserName': {
+      const userPlayer = TicTacToeEngine.getUserPlayer(gameEngine.getPlayers());
+      gameEngine.setUserName(userPlayer.id, action.payload?.newName || TicTacToeEngine.userPlayerDefaultName)
+
+      return {
+        ...state,
+        players: gameEngine.getPlayers()
       }
     }
 

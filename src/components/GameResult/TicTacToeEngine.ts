@@ -1,29 +1,29 @@
-import { type Player, type GameField, type GameFinishedBy } from "../../types/types";
+import { type Player, type GameField, type GameFinishedBy, type DifficultyLevel } from "../../types/types";
 import { hasNumericValue } from "../../utils/utils";
 
 export type GameEngineProps = {
     gameField: GameField;
-    currentPlayer: Player;
     players: Player[];
+    difficultyLevel: DifficultyLevel
 }
 
 export class TicTacToeEngine {
 
     private game: GameEngineProps;
 
-    constructor(gameProps?: GameEngineProps) {
-        const initialPlayers = [
-            { name: 'User', moveValue: 'x', isAutomated: false, score: 0 },
-            { name: 'Computer', moveValue: 'o', isAutomated: true, score: 0 },
-        ];
+    static userPlayerDefaultName = 'User';
 
+    constructor(gameProps?: GameEngineProps) {
         this.game = {
             gameField: {
                 board: gameProps?.gameField?.board || this.createEmptyBoard(),
                 isFreezed: gameProps?.gameField?.isFreezed || false
             },
-            players: gameProps?.players || initialPlayers,
-            currentPlayer: gameProps?.currentPlayer || initialPlayers[0]
+            players: gameProps?.players || [
+                { id: 'real-user', name: TicTacToeEngine.userPlayerDefaultName, moveValue: 'x', isAutomated: false, score: 0, isActive: true },
+                { id: 'bot-user', name: 'Computer', moveValue: 'o', isAutomated: true, score: 0, isActive: false },
+            ],
+            difficultyLevel: gameProps?.difficultyLevel || "simple"
         }
     }
 
@@ -44,7 +44,22 @@ export class TicTacToeEngine {
 
 
     getCurrentPlayer() {
-        return this.game.currentPlayer;
+        return this.game.players.find(player => player.isActive);
+    }
+
+
+    getDiffucultyLevel(): DifficultyLevel {
+        return this.game.difficultyLevel;
+    }
+
+
+    setDiffucultyLevel(newLevel: DifficultyLevel) {
+        this.game.difficultyLevel = newLevel;
+    }
+
+
+    setUserName(userId: string, name: string) {
+        this.game.players = this.game.players.map(player => (player.id === userId ? { ...player, name: name } : player));
     }
 
 
@@ -57,8 +72,8 @@ export class TicTacToeEngine {
                 return [...row].map(rowCell => ({ ...rowCell }))
             }) as GameField['board'],
         }
-        clone.game.currentPlayer = { ...this.game.currentPlayer };
         clone.game.players = this.game.players.map(player => ({ ...player }));
+        clone.game.difficultyLevel = this.game.difficultyLevel;
 
         return clone;
     }
@@ -69,7 +84,7 @@ export class TicTacToeEngine {
             board: this.createEmptyBoard(),
             isFreezed: false,
         }
-        this.game.currentPlayer = this.game.players[0];
+        this.game.players = this.game.players.map(player => ({...player, isActive: player.isAutomated === false}));
     }
 
 
@@ -78,11 +93,13 @@ export class TicTacToeEngine {
     }
 
 
-    makeMove(coordinates: [number, number]) {
+    makeMove(coordinates: [number, number]): boolean {
         const [row, cell] = coordinates;
-        if (hasNumericValue(row, cell)) {
-            this.game.gameField.board[ row! ][ cell! ].value = this.game.currentPlayer.moveValue;
+        if (hasNumericValue(row, cell) && this.game.gameField.board[row!][cell!].value === '') {
+            this.game.gameField.board[row!][cell!].value = this.getCurrentPlayer()!.moveValue;
+            return true;
         }
+        return false;
     }
 
 
@@ -103,10 +120,12 @@ export class TicTacToeEngine {
     checkIfWin(): GameFinishedBy {
         let gameFinishedBy: GameFinishedBy = null;
 
+        const currentPlayer = this.getCurrentPlayer()!;
+
         for (let i = 0; i < 3; i++) {
-            if (this.game.gameField.board[i][0].value === this.game.currentPlayer.moveValue
-                && this.game.gameField.board[i][1].value === this.game.currentPlayer.moveValue
-                && this.game.gameField.board[i][2].value === this.game.currentPlayer.moveValue
+            if (this.game.gameField.board[i][0].value === currentPlayer.moveValue
+                && this.game.gameField.board[i][1].value === currentPlayer.moveValue
+                && this.game.gameField.board[i][2].value === currentPlayer.moveValue
             ) {
                 gameFinishedBy = { type: 'row-won', rowIndex: i };
                 break;
@@ -115,24 +134,24 @@ export class TicTacToeEngine {
 
 
         for (let j = 0; j < 3; j++) {
-            if (this.game.gameField.board[0][j].value === this.game.currentPlayer.moveValue
-                && this.game.gameField.board[1][j].value === this.game.currentPlayer.moveValue
-                && this.game.gameField.board[2][j].value === this.game.currentPlayer.moveValue
+            if (this.game.gameField.board[0][j].value === currentPlayer.moveValue
+                && this.game.gameField.board[1][j].value === currentPlayer.moveValue
+                && this.game.gameField.board[2][j].value === currentPlayer.moveValue
             ) {
                 gameFinishedBy = { type: 'col-won', colIndex: j };
                 break;
             }
         }
 
-        if (this.game.gameField.board[0][0].value === this.game.currentPlayer.moveValue
-            && this.game.gameField.board[1][1].value === this.game.currentPlayer.moveValue
-            && this.game.gameField.board[2][2].value === this.game.currentPlayer.moveValue
+        if (this.game.gameField.board[0][0].value === currentPlayer.moveValue
+            && this.game.gameField.board[1][1].value === currentPlayer.moveValue
+            && this.game.gameField.board[2][2].value === currentPlayer.moveValue
         ) {
             gameFinishedBy = { type: 'diagonal-won', diagonalType: 'left' };
         }
-        if (this.game.gameField.board[0][2].value === this.game.currentPlayer.moveValue
-            && this.game.gameField.board[1][1].value === this.game.currentPlayer.moveValue
-            && this.game.gameField.board[2][0].value === this.game.currentPlayer.moveValue
+        if (this.game.gameField.board[0][2].value === currentPlayer.moveValue
+            && this.game.gameField.board[1][1].value === currentPlayer.moveValue
+            && this.game.gameField.board[2][0].value === currentPlayer.moveValue
         ) {
             gameFinishedBy = { type: 'diagonal-won', diagonalType: 'right' };
         }
@@ -151,8 +170,9 @@ export class TicTacToeEngine {
 
 
     switchToNextPlayer() {
-        const prevPlayerIndex = this.game.players.findIndex((curPlayer: Player) => curPlayer.name === this.game.currentPlayer.name);
-        this.game.currentPlayer = this.game.players[prevPlayerIndex === (this.game.players.length - 1) ? 0 : prevPlayerIndex + 1];
+        const prevPlayerIndex = this.game.players.findIndex((curPlayer: Player) => curPlayer.isActive);
+        const nextPlayerIndex = prevPlayerIndex === (this.game.players.length - 1) ? 0 : prevPlayerIndex + 1;
+        this.game.players = this.game.players.map((player: Player, index: number) => ({...player, isActive: index === nextPlayerIndex}));
     }
 
 
@@ -170,7 +190,7 @@ export class TicTacToeEngine {
 
 
     incrementCurrentPlayerScore() {
-        this.game.players = this.game.players.map((player) => player.name === this.game.currentPlayer.name ? {...player, score: player.score + 1} : player);
+        this.game.players = this.game.players.map((player) => player.isActive ? { ...player, score: player.score + 1 } : player);
     }
 
 
@@ -212,6 +232,16 @@ export class TicTacToeEngine {
             }
         }
 
+    }
+
+
+    static getActivePlayer(players: Player[]): Player {
+        return players.find(player => player.isActive)!;
+    }
+
+
+    static getUserPlayer(players: Player[]): Player  {
+        return players.find(player => player.isAutomated === false)!;
     }
 
 }
