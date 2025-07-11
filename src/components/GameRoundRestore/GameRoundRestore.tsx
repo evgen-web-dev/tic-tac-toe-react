@@ -34,7 +34,7 @@ export default function GameRoundRestore({ state, dispatch }: GameRoundRestorePr
                 <div className="w-[95vw] md:w-[450px] rounded-xl bg-white dark:bg-neutral-800 p-6 lg:p-8">
                     <h2 className="text-2xl">Note</h2>
 
-                    <p className="mt-6">There is unfinished previous game-round saved.</p>
+                    <p className="mt-6">There is unfinished game-round saved.</p>
                     <p>Would you like to <span className="font-bold">restore it</span> or <span className="font-bold">start a new round</span>?</p>
 
                     <div className="mt-10 flex gap-4">
