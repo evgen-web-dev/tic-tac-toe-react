@@ -7,13 +7,20 @@ export type GameEngineProps = {
     difficultyLevel: DifficultyLevel
 }
 
+type GameSettings = {
+    level: DifficultyLevel;
+    userName: string;
+}
+
 export class TicTacToeEngine {
 
     private game: GameEngineProps;
 
     static userPlayerDefaultName = 'User';
 
-    protected static LINES = [
+    private static BOARD_LOCAL_STORAGE_KEY = 'board' as const;
+    private static SETTINGS_LOCAL_STORAGE_KEY = 'settings' as const;
+    private static LINES = [
         // rows
         [[0, 0], [0, 1], [0, 2]],
         [[1, 0], [1, 1], [1, 2]],
@@ -29,17 +36,20 @@ export class TicTacToeEngine {
     private static SIDES = [[0, 1], [1, 0], [1, 2], [2, 1]] as Readonly<[number, number][]>
     private static CORNERS = [[0, 0], [0, 2], [2, 0], [2, 2]] as Readonly<[number, number][]>;
 
+
     constructor(gameProps?: GameEngineProps) {
+        const savedSettings = this.getSavedSettingsFromLocalStorage();
+
         this.game = {
             gameField: {
                 board: gameProps?.gameField?.board || this.createEmptyBoard(),
                 isFreezed: gameProps?.gameField?.isFreezed || false
             },
             players: gameProps?.players || [
-                { id: 'real-user', name: TicTacToeEngine.userPlayerDefaultName, moveValue: 'x', isAutomated: false, score: 0, isActive: true },
+                { id: 'real-user', name: savedSettings?.userName || TicTacToeEngine.userPlayerDefaultName, moveValue: 'x', isAutomated: false, score: 0, isActive: true },
                 { id: 'bot-user', name: 'Computer', moveValue: 'o', isAutomated: true, score: 0, isActive: false },
             ],
-            difficultyLevel: gameProps?.difficultyLevel || "simple"
+            difficultyLevel: gameProps?.difficultyLevel || savedSettings?.level || "simple"
         }
     }
 
@@ -75,13 +85,44 @@ export class TicTacToeEngine {
     }
 
 
+    getSavedBoardFromLocalStorage(): GameField['board'] | null {
+        return JSON.parse(localStorage.getItem(TicTacToeEngine.BOARD_LOCAL_STORAGE_KEY) || 'null');
+    }
+
+
+    getSavedSettingsFromLocalStorage(): GameSettings | null {
+        return JSON.parse(localStorage.getItem(TicTacToeEngine.SETTINGS_LOCAL_STORAGE_KEY) || 'null');
+    }
+
+
+    private saveBoardToLocalStorage(boardToSave: GameField['board'] | null): void {
+        localStorage.setItem(TicTacToeEngine.BOARD_LOCAL_STORAGE_KEY, JSON.stringify(boardToSave ? boardToSave : null));
+    }
+
+
+    private saveSettingsToLocalStorage(): void {
+        const settings: GameSettings = {
+            level: this.getDiffucultyLevel(),
+            userName: TicTacToeEngine.getUserPlayer(this.getPlayers()).name
+        };
+        localStorage.setItem(TicTacToeEngine.SETTINGS_LOCAL_STORAGE_KEY, JSON.stringify(settings));
+    }
+
+
+    setGameFieldBoard(board: GameField['board']) {
+        this.game.gameField.board = board;
+    }
+
+
     setDiffucultyLevel(newLevel: DifficultyLevel) {
         this.game.difficultyLevel = newLevel;
+        this.saveSettingsToLocalStorage();
     }
 
 
     setUserName(userId: string, name: string) {
         this.game.players = this.game.players.map(player => (player.id === userId ? { ...player, name: name } : player));
+        this.saveSettingsToLocalStorage();
     }
 
 
@@ -106,7 +147,13 @@ export class TicTacToeEngine {
             board: this.createEmptyBoard(),
             isFreezed: false,
         }
-        this.game.players = this.game.players.map(player => ({...player, isActive: player.isAutomated === false}));
+        this.game.players = this.game.players.map(player => ({ ...player, isActive: player.isAutomated === false }));
+        this.saveBoardToLocalStorage(null);
+    }
+
+
+    resetSavedGameBoard() {
+        this.saveBoardToLocalStorage(null);
     }
 
 
@@ -115,17 +162,22 @@ export class TicTacToeEngine {
     }
 
 
-    makeMove(coordinates: [number, number]): boolean {
-        const [row, cell] = coordinates;
-        if (hasNumericValue(row, cell) && this.game.gameField.board[row!][cell!].value === '') {
-            this.game.gameField.board[row!][cell!].value = this.getCurrentPlayer()!.moveValue;
-            return true;
+    makeMove(coordinates?: [number, number]): boolean {
+        const checkedCoordinates = coordinates || this.getNextMoveCoordinates();
+
+        if (checkedCoordinates) {
+            const [row, cell] = checkedCoordinates;
+            if (hasNumericValue(row, cell) && this.game.gameField.board[row!][cell!].value === '') {
+                this.game.gameField.board[row!][cell!].value = this.getCurrentPlayer()!.moveValue;
+                return true;
+            }
         }
+
         return false;
     }
 
 
-    findWinningMove(moveValue: string): [number, number] | null {
+    private findWinningMove(moveValue: string): [number, number] | null {
         let lineCellsData: Array<{ coords: [number, number], cell: FieldCell }>;
 
         let filledCellsCount = 0;
@@ -244,6 +296,9 @@ export class TicTacToeEngine {
             gameFinishedBy = { type: 'draw-game' };
         }
 
+        // if gameFinishedBy === null (so current game-round is finished) - resetting saved board in local storage
+        this.saveBoardToLocalStorage(gameFinishedBy === null ? this.getGameField().board : null);
+
         return gameFinishedBy;
     }
 
@@ -264,6 +319,19 @@ export class TicTacToeEngine {
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 if (this.game.gameField.board[i][j].value === '') {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+    isGameFieldEmpty() {
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (this.game.gameField.board[i][j].value !== '') {
                     return false;
                 }
             }

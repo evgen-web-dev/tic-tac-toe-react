@@ -7,6 +7,7 @@ import { WonCellsColorTypes } from "../../types/types";
 import { TicTacToeEngine } from "../GameResult/TicTacToeEngine";
 import { hasNumericValue } from "../../utils/utils";
 import GameSettings from "../GameSettings/GameSetings";
+import GameRoundRestore from "../GameRoundRestore/GameRoundRestore";
 
 
 type GameBoardProps = {
@@ -102,7 +103,9 @@ export default function GameBoard({ }: GameBoardProps) {
 
     return (
         <>
-            <GameSettings state={state} dispatch={dispatch} className="absolute top-2 right-2 lg:top-8 lg:right-8" />
+            <GameSettings state={state} dispatch={dispatch} className="absolute top-2 right-2 md:top-8 md:right-8" />
+
+            <GameRoundRestore state={state} dispatch={dispatch} />
 
             <GameResult state={state} onGameFinishedCountdownCompleted={resetGameField} />
 

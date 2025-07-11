@@ -1,4 +1,4 @@
-import { useState, type ActionDispatch, type ChangeEvent, type ComponentProps, type FormEvent, type PropsWithChildren, type ReactNode } from "react"
+import { useState, type ActionDispatch, type ChangeEvent, type ComponentProps, type PropsWithChildren, type ReactNode } from "react"
 import Modal from "../Modal/Modal";
 import type { Action, State } from "../../reducers/gameReducer/gameReducer";
 import type { DifficultyLevel } from "../../types/types";
@@ -81,14 +81,15 @@ export default function GameSettings({ state, dispatch, className }: GameSetting
 
     return (
         <div className={className}>
-            <button onClick={() => setIsSettingsModalOpened(true)} type="button" className="w-9 h-9 p-1.5 rounded-md flex items-center justify-center">
-                <svg className="w-full stroke-black dark:stroke-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+            <button onClick={() => setIsSettingsModalOpened(true)} type="button" 
+                className="w-9 h-9 md:w-11 md:h-11 p-1.5 rounded-md flex items-center justify-center">
+                <svg className="w-full h-auto block stroke-black dark:stroke-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                     <path strokeWidth="2" d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4" />
                 </svg>
             </button>
 
             <Modal isOpened={isSettingsModalOpened} onClose={handleOnClose}>
-                <div className="w-[95vw] lg:w-[600px] rounded-xl bg-white dark:bg-neutral-800 p-6 lg:p-8">
+                <div className="w-[95vw] md:w-[500px] rounded-xl bg-white dark:bg-neutral-800 p-6 lg:p-8">
 
                     <form action={handleOnSave}>
                         {settingsSections && settingsSections.map((section) => (

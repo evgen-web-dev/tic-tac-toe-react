@@ -29,12 +29,17 @@ type SetDifficultyLevelAction = BaseAction<'setDifficultyLevelAction', {
   level: DifficultyLevel
 }>;
 
+type TryRestoreGameFieldBoardAction = BaseAction<'tryRestoreGameFieldBoard', {
+  toRestore: boolean
+}>;
+
 type SetUserName = BaseAction<'setUserName', {
   newName: string
 }>;
 
 export type Action = MakeMoveAction | ResetGameFieldAction | FreezeGameFieldAction
-  | HighlightGameFieldCellsAction | SetWonCellsColorAction | SetDifficultyLevelAction | SetUserName;
+  | HighlightGameFieldCellsAction | SetWonCellsColorAction | SetDifficultyLevelAction
+  | SetUserName | TryRestoreGameFieldBoardAction;
 
 
 
@@ -47,7 +52,7 @@ export function gameReducerFunction(state: State, action: Action): State {
     case 'makeMove': {
       let currentGameResult = state.isGameFinishedBy;
 
-      if (gameEngine.makeMove(action.payload?.cellCoordinates || gameEngine.getNextMoveCoordinates())) {
+      if (gameEngine.makeMove(action.payload?.cellCoordinates)) {
         currentGameResult = gameEngine.checkIfWin();
 
         if (currentGameResult === null) {
@@ -119,6 +124,24 @@ export function gameReducerFunction(state: State, action: Action): State {
       return {
         ...state,
         players: gameEngine.getPlayers()
+      }
+    }
+
+    case 'tryRestoreGameFieldBoard': {
+      if (action.payload?.toRestore) {
+        const savedBoard = gameEngine.getSavedBoardFromLocalStorage();
+        if (savedBoard) {
+          gameEngine.setGameFieldBoard(savedBoard);
+        }
+      }
+      else {
+        gameEngine.resetSavedGameBoard();
+      }
+
+
+      return {
+        ...state,
+        gameField: gameEngine.getGameField()
       }
     }
 
