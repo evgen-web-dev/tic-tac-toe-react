@@ -6,15 +6,17 @@ export type FieldCell = {
 
 
 export type Player = {
+    id: string,
     name: string,
     moveValue: string,
-    isAutomated: boolean, 
-    score: number
+    isAutomated: boolean,
+    score: number,
+    isActive: boolean
 }
 
 
 export type GameField = {
-    cells: [
+    board: [
         [FieldCell, FieldCell, FieldCell],
         [FieldCell, FieldCell, FieldCell],
         [FieldCell, FieldCell, FieldCell],
@@ -36,3 +38,13 @@ type GameFinishedByDraw = {
     type: 'draw-game'
 }
 export type GameFinishedBy = null | GameFinishedByDiagonalWon | GameFinishedByColWon | GameFinishedByRowWon | GameFinishedByDraw;
+
+
+export type WonCellsColorType = typeof WonCellsColorTypes[keyof typeof WonCellsColorTypes];
+export const WonCellsColorTypes = {
+    WinColor: 'bg-green-200 dark:bg-green-800', 
+    LostColor: 'bg-red-200 dark:bg-red-900'
+}
+
+
+export type DifficultyLevel = "simple" | "hard";
