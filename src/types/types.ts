@@ -6,10 +6,12 @@ export type FieldCell = {
 
 
 export type Player = {
+    id: string,
     name: string,
     moveValue: string,
     isAutomated: boolean,
-    score: number
+    score: number,
+    isActive: boolean
 }
 
 
@@ -43,3 +45,6 @@ export const WonCellsColorTypes = {
     WinColor: 'bg-green-200 dark:bg-green-800', 
     LostColor: 'bg-red-200 dark:bg-red-900'
 }
+
+
+export type DifficultyLevel = "simple" | "hard";

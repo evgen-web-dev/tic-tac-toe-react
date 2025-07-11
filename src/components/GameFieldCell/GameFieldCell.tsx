@@ -25,7 +25,7 @@ export default function GameFieldCell({ state, cellValue, onCellMove }: GameFiel
         <>
             <button 
                 onClick={onCellMove}
-                className="relative overflow-hidden lowercase rounded-lg flex items-center justify-center !text-4xl font-semibold !p-0">
+                className="button relative overflow-hidden lowercase rounded-lg flex items-center justify-center !text-4xl font-semibold !p-0">
                 
                 <span className={(cellValue.isHightlighted ? (wonCellsColor + ' ') : '') 
                     + " duration-300 absolute flex items-center justify-center translate-x-[-50%] translate-y-[-50%] top-[50%] left-[50%] w-full h-full"}>
