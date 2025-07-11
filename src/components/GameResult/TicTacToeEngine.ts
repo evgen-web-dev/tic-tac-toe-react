@@ -1,5 +1,5 @@
-import { type Player, type GameField, type GameFinishedBy, type DifficultyLevel } from "../../types/types";
-import { hasNumericValue } from "../../utils/utils";
+import { type Player, type GameField, type GameFinishedBy, type DifficultyLevel, type FieldCell } from "../../types/types";
+import { hasNumericValue, shuffleArray } from "../../utils/utils";
 
 export type GameEngineProps = {
     gameField: GameField;
@@ -12,6 +12,22 @@ export class TicTacToeEngine {
     private game: GameEngineProps;
 
     static userPlayerDefaultName = 'User';
+
+    protected static LINES = [
+        // rows
+        [[0, 0], [0, 1], [0, 2]],
+        [[1, 0], [1, 1], [1, 2]],
+        [[2, 0], [2, 1], [2, 2]],
+        // cols
+        [[0, 0], [1, 0], [2, 0]],
+        [[0, 1], [1, 1], [2, 1]],
+        [[0, 2], [1, 2], [2, 2]],
+        // diags
+        [[0, 0], [1, 1], [2, 2]],
+        [[0, 2], [1, 1], [2, 0]],
+    ] as Readonly<[number, number][][]>;
+    private static SIDES = [[0, 1], [1, 0], [1, 2], [2, 1]] as Readonly<[number, number][]>
+    private static CORNERS = [[0, 0], [0, 2], [2, 0], [2, 2]] as Readonly<[number, number][]>;
 
     constructor(gameProps?: GameEngineProps) {
         this.game = {
@@ -43,8 +59,14 @@ export class TicTacToeEngine {
     }
 
 
-    getCurrentPlayer() {
-        return this.game.players.find(player => player.isActive);
+    getCurrentPlayer(): Player {
+        return this.game.players.find(player => player.isActive)!;
+    }
+
+
+    getCurrentPlayerOpponent(): Player {
+        const currentPlayer = this.getCurrentPlayer();
+        return this.game.players.find(player => player.moveValue !== currentPlayer.moveValue)!;
     }
 
 
@@ -103,17 +125,79 @@ export class TicTacToeEngine {
     }
 
 
-    getNextMoveCoordinates(): [number, number] {
-        // needs refactoring - for more complicated logic
-        for (let i = 0; i < this.game.gameField.board.length; i++) {
-            for (let j = 0; j < this.game.gameField.board.length; j++) {
-                if (this.game.gameField.board[i][j].value === '') {
-                    return [i, j];
+    findWinningMove(moveValue: string): [number, number] | null {
+        let lineCellsData: Array<{ coords: [number, number], cell: FieldCell }>;
+
+        let filledCellsCount = 0;
+        let lastEmptyCellCoordinates: [number, number] | null = null;
+
+        for (const line of TicTacToeEngine.LINES) {
+            lineCellsData = line.map(([row_i, col_i]) => ({ coords: [row_i, col_i], cell: this.game.gameField.board[row_i][col_i] }));
+
+            filledCellsCount = 0;
+            lastEmptyCellCoordinates = null;
+
+            for (const cellData of lineCellsData) {
+                if (cellData.cell.value === '') {
+                    lastEmptyCellCoordinates = cellData.coords;
+                }
+                else if (cellData.cell.value === moveValue) {
+                    filledCellsCount++;
+                }
+
+                if (filledCellsCount === 2 && lastEmptyCellCoordinates) {
+                    return lastEmptyCellCoordinates;
                 }
             }
         }
 
-        return [0, 0];
+        return null;
+    }
+
+
+    getNextMoveCoordinates(): [number, number] | null {
+        if (this.getDiffucultyLevel() === 'hard') {
+            // win if posible
+            let move = this.findWinningMove(this.getCurrentPlayer()!.moveValue);
+            if (move) return move;
+
+            // block opponent's win if possible
+            move = this.findWinningMove(this.getCurrentPlayerOpponent().moveValue);
+            if (move) return move;
+
+            // take center cell if possible
+            if (!this.game.gameField.board[1][1].value) {
+                return [1, 1]
+            }
+
+            // take empty corner if possible
+            for (const [row_i, col_i] of shuffleArray([...TicTacToeEngine.CORNERS])) {
+                if (!this.game.gameField.board[row_i][col_i].value) {
+                    return [row_i, col_i];
+                }
+            }
+
+            // take empty side if possible
+            for (const [row_i, col_i] of shuffleArray([...TicTacToeEngine.SIDES])) {
+                if (!this.game.gameField.board[row_i][col_i].value) {
+                    return [row_i, col_i];
+                }
+            }
+        }
+
+        else {
+            let row_i: number;
+            let col_i: number;
+
+            do {
+                row_i = Math.floor(Math.random() * 3);
+                col_i = Math.floor(Math.random() * 3);
+            } while (this.game.gameField.board[row_i][col_i].value)
+
+            return [row_i, col_i];
+        }
+
+        return null;
     }
 
 
@@ -172,7 +256,7 @@ export class TicTacToeEngine {
     switchToNextPlayer() {
         const prevPlayerIndex = this.game.players.findIndex((curPlayer: Player) => curPlayer.isActive);
         const nextPlayerIndex = prevPlayerIndex === (this.game.players.length - 1) ? 0 : prevPlayerIndex + 1;
-        this.game.players = this.game.players.map((player: Player, index: number) => ({...player, isActive: index === nextPlayerIndex}));
+        this.game.players = this.game.players.map((player: Player, index: number) => ({ ...player, isActive: index === nextPlayerIndex }));
     }
 
 
@@ -240,7 +324,7 @@ export class TicTacToeEngine {
     }
 
 
-    static getUserPlayer(players: Player[]): Player  {
+    static getUserPlayer(players: Player[]): Player {
         return players.find(player => player.isAutomated === false)!;
     }
 

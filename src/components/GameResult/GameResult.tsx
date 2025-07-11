@@ -24,7 +24,7 @@ export default function GameResult({ state, onGameFinishedCountdownCompleted }: 
                     </span>
 
                     <span className='text-xs min-[380px]:text-sm block italic mt-4'>
-                        new round will be started in <span className='font-bold'>{isGameFinishedBy && <CountdownTimer startTimerValue={30} onTimerFinished={onGameFinishedCountdownCompleted} />}</span> sec...
+                        new round will be started in <span className='font-bold'>{isGameFinishedBy && <CountdownTimer startTimerValue={5} onTimerFinished={onGameFinishedCountdownCompleted} />}</span> sec...
                     </span>
                 </p>
             </div>

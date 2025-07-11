@@ -41,11 +41,11 @@ export default function GameSettings({ state, dispatch, className }: GameSetting
     }
 
     function handleOnSave(formData: FormData) {
-        // const newLevel = (formData.get(difficultyLevelInputName)?.toString() || 'simple') as DifficultyLevel;
-        // const newNameForUser = formData.get(newUserNameInputName)?.toString() || TicTacToeEngine.userPlayerDefaultName;
+        const newLevel = (formData.get(difficultyLevelInputName)?.toString() || 'simple') as DifficultyLevel;
+        const newNameForUser = formData.get(newUserNameInputName)?.toString() || TicTacToeEngine.userPlayerDefaultName;
 
-        // dispatch({ type: 'setDifficultyLevelAction', payload: { level: newLevel } });
-        // dispatch({ type: 'setUserName', payload: { newName: newNameForUser } });
+        dispatch({ type: 'setDifficultyLevelAction', payload: { level: newLevel } });
+        dispatch({ type: 'setUserName', payload: { newName: newNameForUser } });
 
         setIsSettingsModalOpened(false);
     }
