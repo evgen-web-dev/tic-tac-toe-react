@@ -33,13 +33,15 @@ type TryRestoreGameFieldBoardAction = BaseAction<'tryRestoreGameFieldBoard', {
   toRestore: boolean
 }>;
 
+type ResetGameScoreAction = BaseAction<'resetGameScore'>;
+
 type SetUserName = BaseAction<'setUserName', {
   newName: string
 }>;
 
 export type Action = MakeMoveAction | ResetGameFieldAction | FreezeGameFieldAction
   | HighlightGameFieldCellsAction | SetWonCellsColorAction | SetDifficultyLevelAction
-  | SetUserName | TryRestoreGameFieldBoardAction;
+  | SetUserName | TryRestoreGameFieldBoardAction | ResetGameScoreAction;
 
 
 
@@ -142,6 +144,15 @@ export function gameReducerFunction(state: State, action: Action): State {
       return {
         ...state,
         gameField: gameEngine.getGameField()
+      }
+    }
+
+    case 'resetGameScore': {
+      gameEngine.resetGameScore();
+
+      return {
+        ...state,
+        players: gameEngine.getPlayers()
       }
     }
 

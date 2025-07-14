@@ -20,6 +20,7 @@ export class TicTacToeEngine {
 
     private static BOARD_LOCAL_STORAGE_KEY = 'board' as const;
     private static SETTINGS_LOCAL_STORAGE_KEY = 'settings' as const;
+    private static SCORE_LOCAL_STORAGE_KEY = 'score' as const;
     private static LINES = [
         // rows
         [[0, 0], [0, 1], [0, 2]],
@@ -40,15 +41,19 @@ export class TicTacToeEngine {
     constructor(gameProps?: GameEngineProps) {
         const savedSettings = this.getSavedSettingsFromLocalStorage();
 
+        const defaultPlayers = [
+            { id: 'real-user', name: savedSettings?.userName || TicTacToeEngine.userPlayerDefaultName, moveValue: 'x', isAutomated: false, score: 0, isActive: true },
+            { id: 'bot-user', name: 'Computer', moveValue: 'o', isAutomated: true, score: 0, isActive: false },
+        ];
+
+        const savedGameScore = this.getSavedScoreFromLocalStorage();
+
         this.game = {
             gameField: {
                 board: gameProps?.gameField?.board || this.createEmptyBoard(),
                 isFreezed: gameProps?.gameField?.isFreezed || false
             },
-            players: gameProps?.players || [
-                { id: 'real-user', name: savedSettings?.userName || TicTacToeEngine.userPlayerDefaultName, moveValue: 'x', isAutomated: false, score: 0, isActive: true },
-                { id: 'bot-user', name: 'Computer', moveValue: 'o', isAutomated: true, score: 0, isActive: false },
-            ],
+            players: gameProps?.players || defaultPlayers.map((player, index) => ({...player, score: savedGameScore[index]})),
             difficultyLevel: gameProps?.difficultyLevel || savedSettings?.level || "simple"
         }
     }
@@ -95,6 +100,11 @@ export class TicTacToeEngine {
     }
 
 
+    getSavedScoreFromLocalStorage(): number[] {
+        return JSON.parse(localStorage.getItem(TicTacToeEngine.SCORE_LOCAL_STORAGE_KEY) || '[0,0]');
+    }
+
+
     private saveBoardToLocalStorage(boardToSave: GameField['board'] | null): void {
         localStorage.setItem(TicTacToeEngine.BOARD_LOCAL_STORAGE_KEY, JSON.stringify(boardToSave ? boardToSave : null));
     }
@@ -106,6 +116,11 @@ export class TicTacToeEngine {
             userName: TicTacToeEngine.getUserPlayer(this.getPlayers()).name
         };
         localStorage.setItem(TicTacToeEngine.SETTINGS_LOCAL_STORAGE_KEY, JSON.stringify(settings));
+    }
+
+
+    private saveScoreToLocalStorage(): void {
+        localStorage.setItem(TicTacToeEngine.SCORE_LOCAL_STORAGE_KEY, JSON.stringify(this.game.players.map(player => player.score)));
     }
 
 
@@ -343,6 +358,7 @@ export class TicTacToeEngine {
 
     incrementCurrentPlayerScore() {
         this.game.players = this.game.players.map((player) => player.isActive ? { ...player, score: player.score + 1 } : player);
+        this.saveScoreToLocalStorage();
     }
 
 
@@ -384,6 +400,12 @@ export class TicTacToeEngine {
             }
         }
 
+    }
+
+
+    resetGameScore(): void {
+        this.game.players.forEach((player) => player.score = 0);
+        this.saveScoreToLocalStorage();
     }
 
 
