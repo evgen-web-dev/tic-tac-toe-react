@@ -387,6 +387,11 @@ export class TicTacToeEngine {
     }
 
 
+    resetGameScore(): void {
+        this.game.players.forEach((player) => player.score = 0);
+    }
+
+
     static getActivePlayer(players: Player[]): Player {
         return players.find(player => player.isActive)!;
     }
