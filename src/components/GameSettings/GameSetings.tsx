@@ -18,7 +18,6 @@ type GameSettingsProps = PropsWithChildren<{
 
 
 export default function GameSettings({ state, dispatch, className }: GameSettingsProps) {
-
     const { difficultyLevel, players } = state;
 
     const userPlayer = players.find(player => !player.isAutomated)!;
