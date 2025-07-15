@@ -1,5 +1,6 @@
 import { type PropsWithChildren, type ComponentProps, useRef, useEffect, type MouseEvent } from "react"
 import { createPortal } from "react-dom";
+import { modalsRootElementId } from "./constants";
 
 
 
@@ -29,13 +30,13 @@ export default function Modal({ isOpened, onClose, onOpen, children }: ModalProp
 
     return createPortal(
         <>
-            <dialog onClick={handleOnClick} className="top-0 left-0 fixed w-screen h-screen bg-black/60 flex justify-center items-center">
+            <dialog data-modal onClick={handleOnClick} className="top-0 left-0 fixed w-screen h-screen bg-black/60 flex justify-center items-center">
                 <div ref={contentRef}>
                     {children}
                 </div>
             </dialog>
         </>,
-        document.getElementById('modals-root')!
+        document.getElementById(modalsRootElementId)!
     )
 
 }
