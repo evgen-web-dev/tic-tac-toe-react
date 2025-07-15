@@ -8,6 +8,7 @@ import { difficultyLevelInputName, newUserNameInputName } from "./constants";
 import { TicTacToeEngine } from "../GameResult/TicTacToeEngine";
 import GameScoreResetModal from "../GameScoreResetModal/GameScoreResetModal";
 import { type GameScoreResetType } from "../GameScoreResetModal/types";
+import Tooltip from "../Tooltip/Tooltip";
 
 
 
@@ -29,6 +30,8 @@ export default function GameSettings({ state, dispatch, className }: GameSetting
     const [newUserName, setNewUserName] = useState<string>(userPlayer.name);
 
     const [scoreResetType, setResetScoreType] = useState<GameScoreResetType>('manual');
+
+    const [isTooltipOpened, setIsTooltipOpened] = useState<boolean>(true);
 
 
     function handleOnClose() {
@@ -61,8 +64,8 @@ export default function GameSettings({ state, dispatch, className }: GameSetting
     }
 
     function handleScoreResetModalOnClose(toReset: boolean) {
-        if (toReset) { 
-            dispatch({ type: 'resetGameScore' }); 
+        if (toReset) {
+            dispatch({ type: 'resetGameScore' });
         }
         setIsResetScoreModalOpened(false);
         setResetScoreType('manual'); // resetting to default
@@ -103,12 +106,21 @@ export default function GameSettings({ state, dispatch, className }: GameSetting
 
     return (
         <div className={className}>
-            <button onClick={() => setIsSettingsModalOpened(true)} type="button"
-                className="w-9 h-9 md:w-11 md:h-11 p-1.5 rounded-md flex items-center justify-center">
-                <svg className="w-full h-auto block stroke-black dark:stroke-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                    <path strokeWidth="2" d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4" />
-                </svg>
-            </button>
+            <Tooltip
+                positionType="bottom-right"
+                renderContent={attachRef => (
+                    <button ref={attachRef} onClick={() => setIsSettingsModalOpened(true)} type="button"
+                        className="w-9 h-9 md:w-10 md:h-10 p-1.5 rounded-md flex items-center justify-center">
+                        <svg className="w-full h-auto block stroke-black dark:stroke-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path strokeWidth="2" d="M20 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6h-2m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4m16 6H10m0 0a2 2 0 1 0-4 0m4 0a2 2 0 1 1-4 0m0 0H4" />
+                        </svg>
+                    </button>
+                )}
+                onClose={() => setIsTooltipOpened(false)} 
+                title="Game settings & customizations can be found here" 
+                open={isTooltipOpened}
+                positionIndent={{top: 0, left: -7}}
+            />
 
             <GameScoreResetModal isOpened={isResetScoreModalOpened} resetType={scoreResetType} onClosed={handleScoreResetModalOnClose} />
 
