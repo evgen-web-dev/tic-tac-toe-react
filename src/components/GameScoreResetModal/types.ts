@@ -1,0 +1,1 @@
+export type GameScoreResetType = 'manual' | 'user-name-triggered';

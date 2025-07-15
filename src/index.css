@@ -16,11 +16,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+
 a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
@@ -72,12 +74,13 @@ button {
   font-family: inherit;
   background-color: #282828;
 }
+
 .button:hover {
   background-color: #3c3c3c;
 }
+
 button:focus,
-button:focus-visible
-{
+button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
@@ -89,40 +92,147 @@ button:focus-visible
 [type=text]:focus,
 [type=text]:focus-visible,
 [type=radio]:focus,
-[type=radio]:focus-visible  {
+[type=radio]:focus-visible {
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
 }
+
+
+.tooltip:not(.tooltip--placed) {
+  @apply hidden absolute;
+}
+
+.tooltip__content {
+  @apply max-w-[200px] relative px-2 py-1 bg-neutral-800 dark:bg-neutral-500 shadow-lg text-white rounded-md text-xs;
+}
+
+
+.tooltip--arrow .tooltip__content::before {
+  @apply content-[''] absolute right-[50%] translate-x-[50%] block w-0 h-0 border-solid border-t-0 border-r-[5px] border-b-[6px] border-l-[5px];
+  @apply border-t-transparent border-r-transparent border-b-neutral-800 dark:border-b-neutral-500 border-l-transparent;
+}
+
+
+.tooltip--arrow--right .tooltip__content::before {
+  @apply right-1.5 left-auto translate-x-0;
+}
+
+
+.tooltip--arrow--left .tooltip__content::before {
+  @apply left-1.5 right-auto translate-x-0;
+}
+
+
+.tooltip--arrow--adjusted-by-right .tooltip__content::before {
+  @apply right-1.5 left-auto translate-x-0;
+}
+
+
+.tooltip--arrow--adjusted-by-left .tooltip__content::before {
+  @apply left-1.5 right-auto translate-x-0;
+}
+
+
+.tooltip--arrow--bottom .tooltip__content::before {
+  @apply bottom-full;
+}
+
+
+.tooltip--arrow--top .tooltip__content::before {
+  @apply top-full scale-[-1];
+}
+
+
+.tooltip--arrow--top.tooltip--arrow--center .tooltip__content {
+  @apply origin-bottom;  
+}
+.tooltip--arrow--bottom.tooltip--arrow--center .tooltip__content {
+  @apply origin-top;
+}
+.tooltip--arrow--top.tooltip--arrow--left .tooltip__content {
+  @apply origin-bottom-left;
+}
+.tooltip--arrow--top.tooltip--arrow--right .tooltip__content {
+  @apply origin-bottom-right;
+}
+.tooltip--arrow--bottom.tooltip--arrow--left .tooltip__content {
+  @apply origin-top-left;
+}
+.tooltip--arrow--bottom.tooltip--arrow--right .tooltip__content {
+  @apply origin-top-right;
+  
+}
+.tooltip--arrow--bottom.tooltip--arrow--adjusted-by-left .tooltip__content {
+  @apply origin-top-left;
+}
+.tooltip--arrow--top.tooltip--arrow--adjusted-by-right .tooltip__content {
+  @apply origin-bottom-right;
+}
+.tooltip--arrow--top.tooltip--arrow--adjusted-by-left .tooltip__content {
+  @apply origin-bottom-left;
+}
+.tooltip--arrow--bottom.tooltip--arrow--adjusted-by-right .tooltip__content {
+  @apply origin-top-right;
+}
+
+
+
 
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
     color: #747bff;
   }
+
   .button {
     background-color: #f9f9f9;
   }
+
   .button:hover {
     background-color: #e8e8e8;
   }
 }
 
 
-.animate-svg path, .animate-svg circle {
+.animate-svg path,
+.animate-svg circle {
   animation: 0.6s animate-svg-content-stroke ease;
   animation-fill-mode: both;
 }
+
 
 .animate-my-bounce {
   animation: 1s animate-my-bounce infinite;
 }
 
+
+.animate-scale {
+  animation-delay: 0.2s;
+  transform: scale(0);
+  animation: 0.25s animate-scale ease;
+  animation-fill-mode: both;
+}
+
+
+@keyframes animate-scale {
+  0% {
+    transform: scale(0);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+
 @keyframes animate-svg-content-stroke {
   0% {
     stroke-dashoffset: var(--strokeDashoffsetStart);
   }
+
   100% {
     stroke-dashoffset: 0;
   }
@@ -133,10 +243,12 @@ button:focus-visible
     transform: translateY(-3%);
     animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
   }
+
   50% {
     transform: none;
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
   }
+
   100% {
     transform: translateY(-3%);
     animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
@@ -147,18 +259,20 @@ button:focus-visible
 @media screen and (min-width: 1025px) {
 
   @keyframes animate-my-bounce {
-  0% {
-    transform: translateY(-7%);
-    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    0% {
+      transform: translateY(-7%);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    50% {
+      transform: none;
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+
+    100% {
+      transform: translateY(-7%);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
   }
-  50% {
-    transform: none;
-    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-  }
-  100% {
-    transform: translateY(-7%);
-    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-  }
-}
-  
+
 }
